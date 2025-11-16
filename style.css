@@ -20,15 +20,15 @@ h1 { font-size: 60px; color: #1565C0; margin-bottom: 30px; }
   padding: 8px 20px; border-radius: 20px; z-index: 10;
 }
 
-#flag-area {
+#flag-area, #review-flag-area {
   width: 50vh; height: 50vh; max-width: 80vw; max-height: 40vh;
-  background: transparent; /* ← 透過に変更 */
+  background: transparent;
   border-radius: 30px; box-shadow: 0 10px 20px rgba(0,0,0,0.1);
   overflow: hidden; margin: 10px auto; display: flex; align-items: center; justify-content: center;
 }
-#flag-area img { max-width: 100%; max-height: 100%; object-fit: contain; }
+#flag-area img, #review-flag-area img { max-width: 100%; max-height: 100%; object-fit: contain; }
 
-#choices {
+#choices, #review-choices {
   display: flex; flex-wrap: wrap; gap: 12px; justify-content: center;
   width: 100%; padding: 0 15px; margin-top: 10px;
 }
@@ -41,13 +41,13 @@ h1 { font-size: 60px; color: #1565C0; margin-bottom: 30px; }
 .correct { background: #4CAF50 !important; animation: pulse 0.5s; }
 .highlight { border: 6px solid #FFEB3B; box-shadow: 0 0 20px #FFEB3B; }
 
-#feedback {
+#feedback, #review-feedback {
   position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-  font-size: 300px; /* ← 250px → 300px */
+  font-size: 300px;
   font-weight: bold; pointer-events: none; z-index: 20;
   opacity: 0; transition: opacity 0.3s;
 }
-#feedback.show { opacity: 1; }
+#feedback.show, #review-feedback.show { opacity: 1; }
 .mar { color: #D32F2F; }
 .batsu { color: #1976D2; }
 
@@ -63,16 +63,18 @@ h1 { font-size: 60px; color: #1565C0; margin-bottom: 30px; }
 }
 .popup-content img { border: 3px solid #4CAF50; border-radius: 15px; }
 
-#history-list {
+#history-list, #miss-list {
   display: flex; flex-direction: column; gap: 15px;
 }
-.history-day {
+.history-day, .miss-day {
   display: flex; align-items: center; background: rgba(255,255,255,0.8);
   padding: 10px; border-radius: 15px; font-size: 36px;
 }
-.history-date { flex: 0 0 180px; font-weight: bold; color: #1565C0; }
-.history-flags { display: flex; gap: 8px; flex-wrap: wrap; }
-.history-flags img { width: 50px; height: 35px; border: 2px solid #4CAF50; border-radius: 8px; }
+.history-date, .miss-date { flex: 0 0 180px; font-weight: bold; color: #1565C0; }
+.history-flags, .miss-flags { display: flex; gap: 8px; flex-wrap: wrap; }
+.history-flags img, .miss-flags img {
+  width: 50px; height: 35px; border: 2px solid #4CAF50; border-radius: 8px; cursor: pointer;
+}
+.miss-flags img { border-color: #F44336; }
 
 @keyframes pulse { 0%{transform:scale(1)} 50%{transform:scale(1.1)} 100%{transform:scale(1)} }
-@keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-20px)} }
