@@ -399,3 +399,33 @@ function showRewardPopup() {
   
   const img = document.getElementById("reward-flag");
   img.src = getFlagUrl(reward.code);
+  img.onerror = function() { this.src = FALLBACK_LARGE; };
+  document.getElementById("reward-name").textContent = reward.name;
+  document.getElementById("reward-popup").classList.remove("hidden");
+  speak(`やったね！${reward.name}を ゲット！`);
+  
+  if (!records[today]) records[today] = [];
+  if (!records[today].includes(reward.code)) {
+    records[today].push(reward.code);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+  }
+}
+
+document.getElementById("reward-ok").onclick = () => {
+  document.getElementById("reward-popup").classList.add("hidden");
+  document.getElementById("start-screen").classList.remove("hidden");
+};
+
+// スタートボタン
+document.getElementById("start-btn").onclick = () => {
+  document.getElementById("start-screen").classList.add("hidden");
+  document.getElementById("game-screen").classList.remove("hidden");
+  prepareQuiz();
+  newQuestion();
+};
+
+// リサイズ
+window.addEventListener("resize", () => {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+});
