@@ -89,7 +89,7 @@ const FLAGS = [
   { name: "カザフスタン", code: "kz" },
   { name: "ケニア", code: "ke" },
   { name: "キリバス", code: "ki" },
-  { name: "くわいと", code: "kw" },
+  { name: "クウェート", code: "kw" },  // ← 修正！「くわいと」→「クウェート」
   { name: "キルギス", code: "kg" },
   { name: "ラオス", code: "la" },
   { name: "ラトビア", code: "lv" },
@@ -310,14 +310,25 @@ function getCutoffJST() {
   return jst.toISOString().split('T')[0];
 }
 
+// === 出題頻度平準化：今日正答した国旗は除外 ===
 function prepareQuiz() {
+  const today = getTodayJST();
+  const todayCorrect = records[today] || []; // 今日正答したコードリスト
+
   let selected = [];
   if (missedFlags.length > 0) {
     const retry = missedFlags.splice(Math.floor(Math.random() * missedFlags.length), 1)[0];
     selected.push(retry);
   }
   const remaining = TOTAL_QUESTIONS - selected.length;
-  const pool = FLAGS.filter(f => !selected.some(s => s.code === f.code));
+
+  // プール：今日正答していない国旗のみ（誤答は含む）
+  const pool = FLAGS.filter(f => 
+    !selected.some(s => s.code === f.code) && 
+    !todayCorrect.includes(f.code)
+  );
+
+  // ランダムに残りを選択（均等化）
   const randoms = pool.sort(() => Math.random() - 0.5).slice(0, remaining);
   quizFlags = [...selected, ...randoms];
   questionCount = 0;
@@ -361,6 +372,14 @@ function selectAnswer(isCorrect, btn, choices) {
     canvas.style.display = "block";
     createConfetti();
     drawConfetti();
+
+    // 正答したら今日の記録に追加（出題平準化用）
+    const today = getTodayJST();
+    if (!records[today]) records[today] = [];
+    if (!records[today].includes(currentFlag.code)) {
+      records[today].push(currentFlag.code);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+    }
   } else {
     if (!missedFlags.some(f => f.code === currentFlag.code)) {
       missedFlags.push(currentFlag);
