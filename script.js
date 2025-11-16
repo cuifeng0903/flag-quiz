@@ -89,7 +89,7 @@ const FLAGS = [
   { name: "カザフスタン", code: "kz" },
   { name: "ケニア", code: "ke" },
   { name: "キリバス", code: "ki" },
-  { name: "クウェート", code: "kw" },  // ← 修正！「くわいと」→「クウェート」
+  { name: "クウェート", code: "kw" },
   { name: "キルギス", code: "kg" },
   { name: "ラオス", code: "la" },
   { name: "ラトビア", code: "lv" },
@@ -291,7 +291,7 @@ function drawConfetti() {
 
 let records = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
 
-// === JSTで今日の日付を取得 ===
+// === JSTで今日の日付を取得（アプリ全体で使用）===
 function getTodayJST() {
   const now = new Date();
   const jstOffset = 9 * 60; // JSTはUTC+9
@@ -300,7 +300,7 @@ function getTodayJST() {
   return jst.toISOString().split('T')[0];
 }
 
-// 30日前もJSTで
+// 30日前もJSTで（履歴表示用）
 function getCutoffJST() {
   const now = new Date();
   const jstOffset = 9 * 60;
@@ -310,7 +310,7 @@ function getCutoffJST() {
   return jst.toISOString().split('T')[0];
 }
 
-// === 出題頻度平準化：今日正答した国旗は除外 ===
+// === 出題頻度平準化：今日正答した国旗は除外（JST）===
 function prepareQuiz() {
   const today = getTodayJST();
   const todayCorrect = records[today] || []; // 今日正答したコードリスト
@@ -373,7 +373,7 @@ function selectAnswer(isCorrect, btn, choices) {
     createConfetti();
     drawConfetti();
 
-    // 正答したら今日の記録に追加（出題平準化用）
+    // 正答したら今日の記録に追加（JST）
     const today = getTodayJST();
     if (!records[today]) records[today] = [];
     if (!records[today].includes(currentFlag.code)) {
@@ -384,7 +384,7 @@ function selectAnswer(isCorrect, btn, choices) {
     if (!missedFlags.some(f => f.code === currentFlag.code)) {
       missedFlags.push(currentFlag);
     }
-    const today = getTodayJST();
+    const today = getTodayJST(); // JST
     if (!missRecords[today]) missRecords[today] = [];
     if (!missRecords[today].includes(currentFlag.code)) {
       missRecords[today].push(currentFlag.code);
@@ -423,7 +423,7 @@ function endQuiz() {
 }
 
 function showRewardPopup() {
-  const today = getTodayJST();
+  const today = getTodayJST(); // JST
   const todayGained = records[today] || [];
   const available = FLAGS.filter(f => !todayGained.includes(f.code));
   
@@ -482,12 +482,12 @@ document.querySelectorAll(".back-btn").forEach(btn => {
   };
 });
 
-// 履歴表示関数
+// === がんばりきろく表示（JST全体管理）===
 function showHistory() {
   const list = document.getElementById("history-list");
   list.innerHTML = "";
   const dates = Object.keys(records).sort((a, b) => b.localeCompare(a));
-  const cutoffStr = getCutoffJST();
+  const cutoffStr = getCutoffJST(); // JST 30日前
   const recentDates = dates.filter(d => d >= cutoffStr);
   if (recentDates.length === 0) {
     list.innerHTML = "<p style='font-size:36px; color:#666;'>まだきろくが ありません。</p>";
@@ -498,7 +498,7 @@ function showHistory() {
     dayDiv.className = "history-day";
     const dateSpan = document.createElement("span");
     dateSpan.className = "history-date";
-    dateSpan.textContent = date.replace(/-/g, '/');
+    dateSpan.textContent = date.replace(/-/g, '/'); // JST日付表示
     dayDiv.appendChild(dateSpan);
     const flagsDiv = document.createElement("div");
     flagsDiv.className = "history-flags";
@@ -514,11 +514,12 @@ function showHistory() {
   });
 }
 
+// === まちがいきろく表示（JST全体管理）===
 function showMissHistory() {
   const list = document.getElementById("miss-list");
   list.innerHTML = "";
   const dates = Object.keys(missRecords).sort((a, b) => b.localeCompare(a));
-  const cutoffStr = getCutoffJST();
+  const cutoffStr = getCutoffJST(); // JST 30日前
   const recentDates = dates.filter(d => d >= cutoffStr);
   if (recentDates.length === 0) {
     list.innerHTML = "<p style='font-size:36px; color:#666;'>まちがいが ありません！えらい！</p>";
@@ -529,7 +530,7 @@ function showMissHistory() {
     dayDiv.className = "miss-day";
     const dateSpan = document.createElement("span");
     dateSpan.className = "miss-date";
-    dateSpan.textContent = date.replace(/-/g, '/');
+    dateSpan.textContent = date.replace(/-/g, '/'); // JST日付表示
     dayDiv.appendChild(dateSpan);
     const flagsDiv = document.createElement("div");
     flagsDiv.className = "miss-flags";
