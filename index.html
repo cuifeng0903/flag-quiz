@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>国旗クイズ！</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- スタート画面 -->
+  <div id="start-screen" class="screen">
+    <h1>国旗クイズ！</h1>
+    <button id="start-btn" class="big-btn">スタート！</button>
+    <button id="history-btn" class="big-btn" style="margin-top:20px; background:#2196F3;">がんばりきろく</button>
+  </div>
+
+  <!-- ゲーム画面 -->
+  <div id="game-screen" class="screen hidden">
+    <div id="progress">1 / 20</div>
+    <div id="flag-area"></div>
+    <div id="choices"></div>
+    <div id="feedback"></div>
+    <canvas id="confetti"></canvas>
+  </div>
+
+  <!-- ご褒美ポップアップ -->
+  <div id="reward-popup" class="popup hidden">
+    <div class="popup-content">
+      <img id="reward-flag" width="100" height="70">
+      <p id="reward-name" style="font-size:48px; margin:15px 0;"></p>
+      <button id="reward-ok" class="big-btn">やったね！</button>
+    </div>
+  </div>
+
+  <!-- 履歴画面 -->
+  <div id="history-screen" class="screen hidden">
+    <h1>がんばりきろく</h1>
+    <button id="back-btn" class="big-btn" style="background:#FF9800;">もどる</button>
+    <div id="history-list" style="margin-top:30px; width:90%; max-height:70vh; overflow-y:auto;"></div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
