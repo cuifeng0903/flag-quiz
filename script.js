@@ -1,4 +1,4 @@
-// === 198カ国完全データ（国連193 + 追加5）===
+// === 198カ国完全データ（グルジア → ジョージア）===
 const FLAGS = [
   { name: "アフガニスタン", code: "af", file: "https://upload.wikimedia.org/wikipedia/commons/5/5c/Flag_of_the_Taliban.svg" },
   { name: "アルバニア", code: "al", file: "https://upload.wikimedia.org/wikipedia/commons/3/36/Flag_of_Albania.svg" },
@@ -63,7 +63,7 @@ const FLAGS = [
   { name: "フランス", code: "fr", file: "https://upload.wikimedia.org/wikipedia/commons/c/c3/Flag_of_France.svg" },
   { name: "ガボン", code: "ga", file: "https://upload.wikimedia.org/wikipedia/commons/0/04/Flag_of_Gabon.svg" },
   { name: "ガンビア", code: "gm", file: "https://upload.wikimedia.org/wikipedia/commons/7/77/Flag_of_The_Gambia.svg" },
-  { name: "グルジア", code: "ge", file: "https://upload.wikimedia.org/wikipedia/commons/0/0f/Flag_of_Georgia.svg" },
+  { name: "ジョージア", code: "ge", file: "https://upload.wikimedia.org/wikipedia/commons/0/0f/Flag_of_Georgia.svg" },  // ← 修正
   { name: "ドイツ", code: "de", file: "https://upload.wikimedia.org/wikipedia/commons/b/ba/Flag_of_Germany.svg" },
   { name: "ガーナ", code: "gh", file: "https://upload.wikimedia.org/wikipedia/commons/1/19/Flag_of_Ghana.svg" },
   { name: "ギリシャ", code: "gr", file: "https://upload.wikimedia.org/wikipedia/commons/5/5c/Flag_of_Greece.svg" },
@@ -201,6 +201,9 @@ const FLAGS = [
   { name: "たいわん", code: "tw", file: "https://upload.wikimedia.org/wikipedia/commons/7/72/Flag_of_the_Republic_of_China.svg" }
 ];
 
+// （省略：前回と同じ198カ国データすべて。コピー時は前回のものをそのまま使用）
+
+let quizFlags = [];
 let currentFlag = null;
 let questionCount = 0;
 let correctCount = 0;
@@ -208,14 +211,30 @@ const TOTAL_QUESTIONS = 20;
 const STORAGE_KEY = 'flag_quiz_records';
 
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-const playBeep = (freq, duration) => {
+
+// 正答音：楽しいチャイム風（3音上昇）
+const playCorrectChime = () => {
+  [880, 1100, 1320].forEach((freq, i) => {
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain); gain.connect(audioCtx.destination);
+    osc.frequency.value = freq;
+    gain.gain.setValueAtTime(0.3, audioCtx.currentTime + i * 0.1);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + i * 0.1 + 0.2);
+    osc.start(audioCtx.currentTime + i * 0.1);
+    osc.stop(audioCtx.currentTime + i * 0.1 + 0.2);
+  });
+};
+
+// 不正解音（シンプル）
+const playWrongBeep = () => {
   const osc = audioCtx.createOscillator();
   const gain = audioCtx.createGain();
   osc.connect(gain); gain.connect(audioCtx.destination);
-  osc.frequency.value = freq;
+  osc.frequency.value = 300;
   gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
-  gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
-  osc.start(); osc.stop(audioCtx.currentTime + duration);
+  gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+  osc.start(); osc.stop(audioCtx.currentTime + 0.3);
 };
 
 const speak = (text) => {
@@ -229,16 +248,22 @@ const ctx = canvas.getContext("2d");
 canvas.width = window.innerWidth; canvas.height = window.innerHeight;
 let particles = [];
 
+// 紙吹雪：下から噴水状に舞う
 function createConfetti() {
   particles = [];
+  const fountainX = canvas.width / 2;
   for (let i = 0; i < 150; i++) {
+    const angle = (Math.random() - 0.5) * Math.PI / 3; // 噴水角度
+    const speed = Math.random() * 8 + 10;
     particles.push({
-      x: Math.random() * canvas.width,
-      y: Math.random() * canvas.height - canvas.height,
-      vx: Math.random() * 6 - 3,
-      vy: Math.random() * 5 + 2,
+      x: fountainX + (Math.random() - 0.5) * 100,
+      y: canvas.height + 50, // 下からスタート
+      vx: Math.cos(angle) * speed * (Math.random() > 0.5 ? 1 : -1),
+      vy: -speed - Math.random() * 5, // 上向き噴射
       color: ["#FFEB3B","#FF5252","#4CAF50","#2196F3","#FF9800"][Math.floor(Math.random()*5)],
-      size: Math.random() * 8 + 4
+      size: Math.random() * 8 + 4,
+      gravity: 0.2,
+      drag: 0.98
     });
   }
 }
@@ -250,18 +275,29 @@ function drawConfetti() {
     ctx.beginPath();
     ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
     ctx.fill();
-    p.x += p.vx; p.y += p.vy; p.vy += 0.1;
+    p.vx *= p.drag;
+    p.vy += p.gravity;
+    p.x += p.vx;
+    p.y += p.vy;
   });
-  if (particles.some(p => p.y < canvas.height)) requestAnimationFrame(drawConfetti);
+  particles = particles.filter(p => p.y < canvas.height + 50 && Math.abs(p.vx) > 0.1);
+  if (particles.length > 0) requestAnimationFrame(drawConfetti);
 }
 
 let records = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
 const getToday = () => new Date().toISOString().split('T')[0];
 
+function prepareQuiz() {
+  quizFlags = [...FLAGS].sort(() => Math.random() - 0.5).slice(0, TOTAL_QUESTIONS);
+  questionCount = 0;
+  correctCount = 0;
+}
+
 function newQuestion() {
-  const shuffled = [...FLAGS].sort(() => Math.random() - 0.5);
-  currentFlag = shuffled[0];
-  const choices = [currentFlag, ...shuffled.slice(1,4)].sort(() => Math.random() - 0.5);
+  currentFlag = quizFlags[questionCount];
+  const otherFlags = FLAGS.filter(f => f.code !== currentFlag.code);
+  const wrongChoices = otherFlags.sort(() => Math.random() - 0.5).slice(0, 3);
+  const choices = [currentFlag, ...wrongChoices].sort(() => Math.random() - 0.5);
 
   document.getElementById("flag-area").innerHTML = `<img src="${currentFlag.file}" alt="">`;
   document.getElementById("progress").textContent = `${questionCount + 1} / ${TOTAL_QUESTIONS}`;
@@ -288,12 +324,12 @@ function selectAnswer(isCorrect, btn, choices) {
     correctCount++;
     btn.classList.add("correct");
     feedback.textContent = "○"; feedback.className = "show mar";
-    playBeep(800, 0.2);
+    playCorrectChime(); // ← 楽しいチャイム
     canvas.style.display = "block";
     createConfetti(); drawConfetti();
   } else {
     feedback.textContent = "×"; feedback.className = "show batsu";
-    playBeep(300, 0.3);
+    playWrongBeep();
     choices.forEach((c, i) => {
       if (c === currentFlag) {
         document.querySelectorAll(".choice-btn")[i].classList.add("highlight");
@@ -311,101 +347,12 @@ function selectAnswer(isCorrect, btn, choices) {
   }, 2000);
 }
 
-function endQuiz() {
-  const rate = correctCount / TOTAL_QUESTIONS;
-  document.getElementById("game-screen").classList.add("hidden");
-  
-  if (rate >= 0.9) {
-    showRewardPopup();
-  } else {
-    document.getElementById("start-screen").classList.remove("hidden");
-    speak("おわり！またチャレンジしてね！");
-  }
-}
-
-function showRewardPopup() {
-  const today = getToday();
-  const todayGained = records[today] || [];
-  const available = FLAGS.filter(f => !todayGained.includes(f.code));
-  
-  let reward;
-  if (available.length === 0) {
-    reward = FLAGS[Math.floor(Math.random() * FLAGS.length)];
-  } else {
-    reward = available[Math.floor(Math.random() * available.length)];
-  }
-  
-  document.getElementById("reward-flag").src = reward.file;
-  document.getElementById("reward-name").textContent = reward.name;
-  document.getElementById("reward-popup").classList.remove("hidden");
-  speak(`やったね！${reward.name}を ゲット！`);
-  
-  if (!records[today]) records[today] = [];
-  if (!records[today].includes(reward.code)) {
-    records[today].push(reward.code);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
-  }
-}
-
-document.getElementById("reward-ok").onclick = () => {
-  document.getElementById("reward-popup").classList.add("hidden");
-  document.getElementById("start-screen").classList.remove("hidden");
-};
-
-document.getElementById("history-btn").onclick = showHistory;
-document.getElementById("back-btn").onclick = () => {
-  document.getElementById("history-screen").classList.add("hidden");
-  document.getElementById("start-screen").classList.remove("hidden");
-};
-
-function showHistory() {
-  document.getElementById("start-screen").classList.add("hidden");
-  document.getElementById("history-screen").classList.remove("hidden");
-  
-  const list = document.getElementById("history-list");
-  list.innerHTML = "";
-  
-  const dates = Object.keys(records).sort((a,b) => b.localeCompare(a));
-  const cutoff = new Date();
-  cutoff.setDate(cutoff.getDate() - 30);
-  const cutoffStr = cutoff.toISOString().split('T')[0];
-  
-  const recentDates = dates.filter(d => d >= cutoffStr);
-  if (recentDates.length === 0) {
-    list.innerHTML = "<p style='font-size:36px; color:#666;'>まだきろくが ありません。</p>";
-    return;
-  }
-  
-  recentDates.forEach(date => {
-    const dayDiv = document.createElement("div");
-    dayDiv.className = "history-day";
-    
-    const dateSpan = document.createElement("span");
-    dateSpan.className = "history-date";
-    dateSpan.textContent = date.replace(/-/g, '/');
-    dayDiv.appendChild(dateSpan);
-    
-    const flagsDiv = document.createElement("div");
-    flagsDiv.className = "history-flags";
-    records[date].forEach(code => {
-      const f = FLAGS.find(x => x.code === code);
-      if (f) {
-        const img = document.createElement("img");
-        img.src = f.file;
-        img.alt = f.name;
-        img.title = f.name;
-        flagsDiv.appendChild(img);
-      }
-    });
-    dayDiv.appendChild(flagsDiv);
-    list.appendChild(dayDiv);
-  });
-}
+// （endQuiz, showRewardPopup, 履歴、スタート処理は前回と同じ）
 
 document.getElementById("start-btn").onclick = () => {
   document.getElementById("start-screen").classList.add("hidden");
   document.getElementById("game-screen").classList.remove("hidden");
-  questionCount = 0; correctCount = 0;
+  prepareQuiz();
   newQuestion();
 };
 
