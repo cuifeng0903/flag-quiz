@@ -4,23 +4,20 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>わくわく国旗クイズ！</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
-  <link rel="manifest" href="manifest.json">
 </head>
 <body>
-  <!-- スタート画面 -->
-  <div id="start-screen">
-    <h1>わくわく国旗クイズ！</h1>
-    <p>国旗を あててみよう！<br>おともだちと いっしょに あそぼう♪</p>
+  <div id="start-screen" class="screen">
+    <h1>わくわく<br>国旗クイズ！</h1>
     <button id="start-btn" class="big-btn">スタート！</button>
-    <div class="menu-btns">
-      <button id="miss-btn" class="menu-btn">まちがいきろく</button>
+    <div class="menu">
       <button id="history-btn" class="menu-btn">がんばりきろく</button>
+      <button id="miss-btn" class="menu-btn">まちがいきろく</button>
     </div>
   </div>
 
-  <!-- ゲーム画面 -->
-  <div id="game-screen" class="hidden">
+  <div id="game-screen" class="screen hidden">
     <div id="progress">1 / 20</div>
     <div id="flag-area"></div>
     <div id="choices"></div>
@@ -28,37 +25,32 @@
     <canvas id="confetti"></canvas>
   </div>
 
-  <!-- ごほうびポップアップ -->
   <div id="reward-popup" class="popup hidden">
     <div class="popup-content">
-      <h2>やったね！</h2>
-      <p>新しい国旗を ゲット！</p>
-      <img id="reward-flag" alt="">
+      <h2>すごい！</h2>
+      <img id="reward-flag" loading="eager" crossorigin="anonymous">
       <p id="reward-name"></p>
-      <button id="reward-ok" class="big-btn">OK！</button>
+      <button id="reward-ok" class="big-btn">やったね！</button>
     </div>
   </div>
 
-  <!-- まちがいきろく画面 -->
-  <div id="miss-screen" class="hidden">
+  <div id="history-screen" class="screen hidden">
+    <h2>がんばりきろく</h2>
+    <div id="history-list"></div>
+    <button id="back-btn" class="back-btn">もどる</button>
+  </div>
+
+  <div id="miss-screen" class="screen hidden">
     <h2>まちがいきろく</h2>
     <div id="miss-list"></div>
     <button id="miss-back-btn" class="back-btn">もどる</button>
   </div>
 
-  <!-- 復習画面 -->
-  <div id="review-screen" class="hidden">
+  <div id="review-screen" class="screen hidden">
     <div id="review-flag-area"></div>
     <div id="review-choices"></div>
     <div id="review-feedback"></div>
-  </div>
-  <button id="review-back-btn" class="back-btn hidden">もどる</button>
-
-  <!-- がんばりきろく画面 -->
-  <div id="history-screen" class="hidden">
-    <h2>がんばりきろく</h2>
-    <div id="history-list"></div>
-    <button id="back-btn" class="back-btn">もどる</button>
+    <button id="review-back-btn" class="back-btn">もどる</button>
   </div>
 
   <script src="script.js"></script>
