@@ -21,13 +21,13 @@ h1 { font-size: 60px; color: #1565C0; margin-bottom: 30px; }
 }
 
 #flag-area, #review-flag-area {
-  width: 70vh; height: 70vh; max-width: 90vw; max-height: 50vh; /* より大きく */
+  width: 85vw; height: 60vh; max-width: 95vw; max-height: 65vh; /* ドーンと大きく！ */
   background: transparent;
   border-radius: 30px; box-shadow: 0 10px 20px rgba(0,0,0,0.1);
   overflow: hidden; margin: 10px auto; display: flex; align-items: center; justify-content: center;
 }
 #flag-area img, #review-flag-area img { 
-  max-width: 100%; max-height: 100%; object-fit: contain; /* 640.png でクリアに大きく */
+  max-width: 100%; max-height: 100%; object-fit: contain; /* 歪みなく最大 */
 }
 
 #choices, #review-choices {
