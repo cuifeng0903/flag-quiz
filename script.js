@@ -573,7 +573,11 @@ function startReview(flag) {
     choicesDiv.appendChild(btn);
   });
 
-  document.getElementById("review-feedback").classList.remove("show");
+  // ○×をリセット
+  const feedback = document.getElementById("review-feedback");
+  feedback.classList.remove("show", "mar", "batsu");
+  feedback.textContent = "";
+  canvas.style.display = "none"; // 紙吹雪は復習ではなし（シンプルに）
 }
 
 function reviewAnswer(isCorrect, btn, choices) {
@@ -583,11 +587,11 @@ function reviewAnswer(isCorrect, btn, choices) {
   if (isCorrect) {
     btn.classList.add("correct");
     feedback.textContent = "○";
-    feedback.className = "show mar";
+    feedback.className = "show mar"; // 画面いっぱい○！
     playCorrectChime();
   } else {
     feedback.textContent = "×";
-    feedback.className = "show batsu";
+    feedback.className = "show batsu"; // 画面いっぱい×！
     playWrongBeep();
     choices.forEach((c, i) => {
       if (c === reviewFlag) {
@@ -599,6 +603,9 @@ function reviewAnswer(isCorrect, btn, choices) {
   setTimeout(() => {
     document.getElementById("review-screen").classList.add("hidden");
     document.getElementById("miss-screen").classList.remove("hidden");
+    // フィードバックリセット
+    feedback.classList.remove("show", "mar", "batsu");
+    feedback.textContent = "";
   }, 2000);
 }
 
