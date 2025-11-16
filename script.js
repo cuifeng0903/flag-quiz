@@ -290,7 +290,25 @@ function drawConfetti() {
 }
 
 let records = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
-const getToday = () => new Date().toISOString().split('T')[0];
+
+// === JSTで今日の日付を取得 ===
+function getTodayJST() {
+  const now = new Date();
+  const jstOffset = 9 * 60; // JSTはUTC+9
+  const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+  const jst = new Date(utc + (jstOffset * 60000));
+  return jst.toISOString().split('T')[0];
+}
+
+// 30日前もJSTで
+function getCutoffJST() {
+  const now = new Date();
+  const jstOffset = 9 * 60;
+  const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+  const jst = new Date(utc + (jstOffset * 60000));
+  jst.setDate(jst.getDate() - 30);
+  return jst.toISOString().split('T')[0];
+}
 
 function prepareQuiz() {
   let selected = [];
@@ -338,7 +356,7 @@ function selectAnswer(isCorrect, btn, choices) {
     correctCount++;
     btn.classList.add("correct");
     feedback.textContent = "○";
-    feedback.className = "show mar"; // 赤字！
+    feedback.className = "show mar";
     playCorrectChime();
     canvas.style.display = "block";
     createConfetti();
@@ -347,7 +365,7 @@ function selectAnswer(isCorrect, btn, choices) {
     if (!missedFlags.some(f => f.code === currentFlag.code)) {
       missedFlags.push(currentFlag);
     }
-    const today = getToday();
+    const today = getTodayJST();
     if (!missRecords[today]) missRecords[today] = [];
     if (!missRecords[today].includes(currentFlag.code)) {
       missRecords[today].push(currentFlag.code);
@@ -386,7 +404,7 @@ function endQuiz() {
 }
 
 function showRewardPopup() {
-  const today = getToday();
+  const today = getTodayJST();
   const todayGained = records[today] || [];
   const available = FLAGS.filter(f => !todayGained.includes(f.code));
   
@@ -445,14 +463,12 @@ document.querySelectorAll(".back-btn").forEach(btn => {
   };
 });
 
-// 履歴表示関数（修正済み）
+// 履歴表示関数
 function showHistory() {
   const list = document.getElementById("history-list");
   list.innerHTML = "";
   const dates = Object.keys(records).sort((a, b) => b.localeCompare(a));
-  const cutoff = new Date();
-  cutoff.setDate(cutoff.getDate() - 30);
-  const cutoffStr = cutoff.toISOString().split('T')[0];
+  const cutoffStr = getCutoffJST();
   const recentDates = dates.filter(d => d >= cutoffStr);
   if (recentDates.length === 0) {
     list.innerHTML = "<p style='font-size:36px; color:#666;'>まだきろくが ありません。</p>";
@@ -483,9 +499,7 @@ function showMissHistory() {
   const list = document.getElementById("miss-list");
   list.innerHTML = "";
   const dates = Object.keys(missRecords).sort((a, b) => b.localeCompare(a));
-  const cutoff = new Date();
-  cutoff.setDate(cutoff.getDate() - 30);
-  const cutoffStr = cutoff.toISOString().split('T')[0];
+  const cutoffStr = getCutoffJST();
   const recentDates = dates.filter(d => d >= cutoffStr);
   if (recentDates.length === 0) {
     list.innerHTML = "<p style='font-size:36px; color:#666;'>まちがいが ありません！えらい！</p>";
