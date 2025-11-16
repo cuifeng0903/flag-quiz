@@ -338,7 +338,7 @@ function selectAnswer(isCorrect, btn, choices) {
     correctCount++;
     btn.classList.add("correct");
     feedback.textContent = "○";
-    feedback.className = "show mar";
+    feedback.className = "show mar"; // 赤字！
     playCorrectChime();
     canvas.style.display = "block";
     createConfetti();
@@ -424,7 +424,155 @@ document.getElementById("start-btn").onclick = () => {
   newQuestion();
 };
 
-// リサイズ
+// 履歴ボタン
+document.getElementById("history-btn").onclick = () => {
+  document.getElementById("start-screen").classList.add("hidden");
+  document.getElementById("history-screen").classList.remove("hidden");
+  showHistory();
+};
+
+document.getElementById("miss-btn").onclick = () => {
+  document.getElementById("start-screen").classList.add("hidden");
+  document.getElementById("miss-screen").classList.remove("hidden");
+  showMissHistory();
+};
+
+// 戻るボタン
+document.querySelectorAll(".back-btn").forEach(btn => {
+  btn.onclick = () => {
+    document.querySelectorAll(".screen").forEach(s => s.classList.add("hidden"));
+    document.getElementById("start-screen").classList.remove("hidden");
+  };
+});
+
+// 履歴表示関数（修正済み）
+function showHistory() {
+  const list = document.getElementById("history-list");
+  list.innerHTML = "";
+  const dates = Object.keys(records).sort((a, b) => b.localeCompare(a));
+  const cutoff = new Date();
+  cutoff.setDate(cutoff.getDate() - 30);
+  const cutoffStr = cutoff.toISOString().split('T')[0];
+  const recentDates = dates.filter(d => d >= cutoffStr);
+  if (recentDates.length === 0) {
+    list.innerHTML = "<p style='font-size:36px; color:#666;'>まだきろくが ありません。</p>";
+    return;
+  }
+  recentDates.forEach(date => {
+    const dayDiv = document.createElement("div");
+    dayDiv.className = "history-day";
+    const dateSpan = document.createElement("span");
+    dateSpan.className = "history-date";
+    dateSpan.textContent = date.replace(/-/g, '/');
+    dayDiv.appendChild(dateSpan);
+    const flagsDiv = document.createElement("div");
+    flagsDiv.className = "history-flags";
+    records[date].forEach(code => {
+      const img = document.createElement("img");
+      img.src = getSmallFlagUrl(code);
+      img.alt = FLAGS.find(f => f.code === code)?.name || "";
+      img.onerror = () => { img.src = FALLBACK_SMALL; };
+      flagsDiv.appendChild(img);
+    });
+    dayDiv.appendChild(flagsDiv);
+    list.appendChild(dayDiv);
+  });
+}
+
+function showMissHistory() {
+  const list = document.getElementById("miss-list");
+  list.innerHTML = "";
+  const dates = Object.keys(missRecords).sort((a, b) => b.localeCompare(a));
+  const cutoff = new Date();
+  cutoff.setDate(cutoff.getDate() - 30);
+  const cutoffStr = cutoff.toISOString().split('T')[0];
+  const recentDates = dates.filter(d => d >= cutoffStr);
+  if (recentDates.length === 0) {
+    list.innerHTML = "<p style='font-size:36px; color:#666;'>まちがいが ありません！えらい！</p>";
+    return;
+  }
+  recentDates.forEach(date => {
+    const dayDiv = document.createElement("div");
+    dayDiv.className = "miss-day";
+    const dateSpan = document.createElement("span");
+    dateSpan.className = "miss-date";
+    dateSpan.textContent = date.replace(/-/g, '/');
+    dayDiv.appendChild(dateSpan);
+    const flagsDiv = document.createElement("div");
+    flagsDiv.className = "miss-flags";
+    missRecords[date].forEach(code => {
+      const f = FLAGS.find(x => x.code === code);
+      if (f) {
+        const img = document.createElement("img");
+        img.src = getSmallFlagUrl(code);
+        img.alt = f.name;
+        img.title = f.name;
+        img.onerror = () => { img.src = FALLBACK_SMALL; };
+        img.onclick = () => startReview(f);
+        flagsDiv.appendChild(img);
+      }
+    });
+    dayDiv.appendChild(flagsDiv);
+    list.appendChild(dayDiv);
+  });
+}
+
+let reviewFlag;
+function startReview(flag) {
+  reviewFlag = flag;
+  document.getElementById("miss-screen").classList.add("hidden");
+  document.getElementById("review-screen").classList.remove("hidden");
+  
+  const otherFlags = FLAGS.filter(f => f.code !== flag.code);
+  const wrongChoices = otherFlags.sort(() => Math.random() - 0.5).slice(0, 3);
+  const choices = [flag, ...wrongChoices].sort(() => Math.random() - 0.5);
+
+  document.getElementById("review-flag-area").innerHTML = `<img src="${getFlagUrl(flag.code)}" alt="" loading="eager" crossorigin="anonymous" onerror="this.src='${FALLBACK_LARGE}'">`;
+
+  const choicesDiv = document.getElementById("review-choices");
+  choicesDiv.innerHTML = "";
+  choices.forEach(c => {
+    const btn = document.createElement("button");
+    btn.className = "choice-btn";
+    btn.textContent = c.name;
+    btn.onclick = () => reviewAnswer(c === flag, btn, choices);
+    choicesDiv.appendChild(btn);
+  });
+
+  document.getElementById("review-feedback").classList.remove("show");
+}
+
+function reviewAnswer(isCorrect, btn, choices) {
+  [...document.querySelectorAll("#review-choices .choice-btn")].forEach(b => b.disabled = true);
+  const feedback = document.getElementById("review-feedback");
+
+  if (isCorrect) {
+    btn.classList.add("correct");
+    feedback.textContent = "○";
+    feedback.className = "show mar";
+    playCorrectChime();
+  } else {
+    feedback.textContent = "×";
+    feedback.className = "show batsu";
+    playWrongBeep();
+    choices.forEach((c, i) => {
+      if (c === reviewFlag) {
+        document.querySelectorAll("#review-choices .choice-btn")[i].classList.add("highlight");
+      }
+    });
+  }
+
+  setTimeout(() => {
+    document.getElementById("review-screen").classList.add("hidden");
+    document.getElementById("miss-screen").classList.remove("hidden");
+  }, 2000);
+}
+
+document.getElementById("review-back-btn").onclick = () => {
+  document.getElementById("review-screen").classList.add("hidden");
+  document.getElementById("miss-screen").classList.remove("hidden");
+};
+
 window.addEventListener("resize", () => {
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
