@@ -13,6 +13,7 @@
     <h1>国旗クイズ！</h1>
     <button id="start-btn" class="big-btn">スタート！</button>
     <button id="history-btn" class="big-btn" style="margin-top:20px; background:#2196F3;">がんばりきろく</button>
+    <button id="miss-btn" class="big-btn" style="margin-top:20px; background:#F44336;">まちがいきろく</button>
   </div>
 
   <!-- ゲーム画面 -->
@@ -27,17 +28,32 @@
   <!-- ご褒美ポップアップ -->
   <div id="reward-popup" class="popup hidden">
     <div class="popup-content">
-      <img id="reward-flag" width="100" height="70">
+      <img id="reward-flag" width="100" height="70" loading="eager">
       <p id="reward-name" style="font-size:48px; margin:15px 0;"></p>
       <button id="reward-ok" class="big-btn">やったね！</button>
     </div>
   </div>
 
-  <!-- 履歴画面 -->
+  <!-- 履歴画面（がんばり） -->
   <div id="history-screen" class="screen hidden">
     <h1>がんばりきろく</h1>
     <button id="back-btn" class="big-btn" style="background:#FF9800;">もどる</button>
     <div id="history-list" style="margin-top:30px; width:90%; max-height:70vh; overflow-y:auto;"></div>
+  </div>
+
+  <!-- まちがいきろく画面 -->
+  <div id="miss-screen" class="screen hidden">
+    <h1>まちがいきろく</h1>
+    <button id="miss-back-btn" class="big-btn" style="background:#FF9800;">もどる</button>
+    <div id="miss-list" style="margin-top:30px; width:90%; max-height:70vh; overflow-y:auto;"></div>
+  </div>
+
+  <!-- 復習クイズ画面 -->
+  <div id="review-screen" class="screen hidden">
+    <div id="review-flag-area"></div>
+    <div id="review-choices"></div>
+    <div id="review-feedback"></div>
+    <button id="review-back-btn" class="big-btn" style="margin-top:20px; background:#FF9800;">もどる</button>
   </div>
 
   <script src="script.js"></script>
