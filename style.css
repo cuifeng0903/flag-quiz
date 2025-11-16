@@ -17,7 +17,7 @@ h2 { font-size: 48px; color: #FF5252; margin-bottom: 30px; }
 
 #flag-area { 
   width: 85vw; height: 55vh; 
-  background: transparent !important; /* 透過に変更！ */
+  background: transparent !important; 
   border-radius: 40px; 
   box-shadow: 0 15px 30px rgba(0,0,0,0.2); 
   display: flex; align-items: center; justify-content: center; margin-bottom: 40px; 
@@ -50,14 +50,41 @@ h2 { font-size: 48px; color: #FF5252; margin-bottom: 30px; }
   border-radius: 30px; 
   box-shadow: 0 15px 30px rgba(0,0,0,0.2); 
 }
-#history-list, #miss-list { width: 90%; max-height: 70vh; overflow-y: auto; background: rgba(255,255,255,0.9); border-radius: 30px; padding: 20px; }
+
+/* === 履歴・まちがい画面のリスト === */
+#history-list, #miss-list { 
+  width: 90%; 
+  max-height: 65vh; /* もどるボタンのスペース確保 */
+  overflow-y: auto; 
+  background: rgba(255,255,255,0.9); 
+  border-radius: 30px; 
+  padding: 20px; 
+  margin-bottom: 100px; /* もどるボタンとの間隔 */
+}
 .history-day, .miss-day { margin-bottom: 30px; }
 .history-date, .miss-date { font-size: 32px; color: #1565C0; margin-bottom: 15px; }
 .history-flags, .miss-flags { display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; }
 .history-flags img, .miss-flags img { width: 100px; height: auto; border-radius: 20px; cursor: pointer; box-shadow: 0 6px 12px rgba(0,0,0,0.2); }
 
-.back-btn { position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%); background: #FF9800; color: white; font-size: 40px; padding: 20px 60px; border-radius: 50px; cursor: pointer; box-shadow: 0 10px #F57C00; }
-.back-btn:active { transform: translateY(4px) translateX(-50%); box-shadow: 0 4px #F57C00; }
+/* === もどるボタン：小さく・下部固定 === */
+.back-btn { 
+  position: fixed; 
+  bottom: 30px; 
+  left: 50%; 
+  transform: translateX(-50%); 
+  background: #FF9800; 
+  color: white; 
+  font-size: 36px; /* 小さく */
+  padding: 15px 40px; /* 小さく */
+  border-radius: 50px; 
+  cursor: pointer; 
+  box-shadow: 0 8px #F57C00; /* 小さく */
+  z-index: 20; /* リストの上 */
+}
+.back-btn:active { 
+  transform: translateY(4px) translateX(-50%); 
+  box-shadow: 0 4px #F57C00; 
+}
 
 @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.2); } 100% { transform: scale(1); } }
 
@@ -65,4 +92,6 @@ h2 { font-size: 48px; color: #FF5252; margin-bottom: 30px; }
   #choices { grid-template-columns: 1fr; }
   .choice-btn { font-size: 32px; }
   #flag-area { height: 45vh; }
+  #history-list, #miss-list { max-height: 60vh; }
+  .back-btn { font-size: 32px; padding: 12px 35px; bottom: 20px; }
 }
