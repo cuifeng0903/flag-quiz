@@ -1,128 +1,154 @@
 * { margin:0; padding:0; box-sizing:border-box; }
-body { font-family: 'Noto Sans JP', sans-serif; background: linear-gradient(#B3E5FC, #E1F5FE); height: 100vh; overflow: hidden; touch-action: manipulation; }
-.screen { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; padding: 20px; text-align: center; }
+body { 
+  font-family: 'Noto Sans JP', sans-serif; 
+  background: linear-gradient(#B3E5FC, #E1F5FE); 
+  height: 100dvh; /* iOS対応: 100dvhでアドレスバー考慮 */
+  overflow: hidden; 
+  touch-action: manipulation; 
+  -webkit-tap-highlight-color: transparent; /* iOSタップハイライト消去 */
+}
+.screen { 
+  display: flex; 
+  flex-direction: column; 
+  align-items: center; 
+  justify-content: flex-start; 
+  height: 100dvh; 
+  padding: 10px; 
+  text-align: center; 
+  overflow: hidden;
+}
 .hidden { display: none !important; }
 
-h1 { font-size: 60px; color: #FF5252; margin-bottom: 20px; text-shadow: 3px 3px 6px rgba(0,0,0,0.2); }
-h2 { font-size: 48px; color: #FF5252; margin-bottom: 30px; }
+h1 { font-size: clamp(40px, 10vw, 70px); color: #FF5252; margin: 10px 0; text-shadow: 3px 3px 6px rgba(0,0,0,0.2); }
+h2 { font-size: clamp(32px, 8vw, 50px); color: #FF5252; margin: 10px 0; }
 
-.big-btn { font-size: 48px; padding: 25px 60px; background: #4CAF50; color: white; border: none; border-radius: 50px; cursor: pointer; box-shadow: 0 10px #388E3C; transition: 0.2s; }
+/* スタート画面ボタン */
+.big-btn { 
+  font-size: clamp(36px, 9vw, 50px); 
+  padding: clamp(15px, 4vw, 30px) clamp(40px, 10vw, 80px); 
+  background: #4CAF50; color: white; border: none; border-radius: 50px; 
+  cursor: pointer; box-shadow: 0 10px #388E3C; transition: 0.2s; 
+}
 .big-btn:active { transform: translateY(6px); box-shadow: 0 4px #388E3C; }
 
-.menu { margin-top: 60px; display: flex; gap: 40px; flex-wrap: wrap; justify-content: center; }
-.menu-btn { font-size: 36px; padding: 20px 40px; background: #2196F3; color: white; border: none; border-radius: 40px; cursor: pointer; box-shadow: 0 8px #1976D2; transition: 0.2s; }
+/* メニュー */
+.menu { margin-top: 30px; gap: clamp(20px, 5vw, 40px); flex-wrap: wrap; justify-content: center; }
+.menu-btn { 
+  font-size: clamp(28px, 7vw, 38px); 
+  padding: clamp(15px, 3vw, 25px) clamp(30px, 8vw, 50px); 
+  background: #2196F3; color: white; border: none; border-radius: 40px; 
+  cursor: pointer; box-shadow: 0 8px #1976D2; transition: 0.2s; 
+}
 .menu-btn:active { transform: translateY(4px); box-shadow: 0 4px #1976D2; }
 
-#progress { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); font-size: 40px; color: #FF9800; background: rgba(255,255,255,0.9); padding: 10px 30px; border-radius: 30px; box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
+/* 進捗表示 */
+#progress { 
+  position: fixed; top: 10px; left: 50%; transform: translateX(-50%); 
+  font-size: clamp(28px, 6vw, 40px); color: #FF9800; 
+  background: rgba(255,255,255,0.9); padding: 8px 20px; border-radius: 30px; 
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2); z-index: 30;
+}
 
-#flag-area { 
-  width: 85vw; height: 55vh; 
-  background: transparent !important; 
+/* 国旗エリア（画面の50〜60%） */
+#flag-area, #review-flag-area { 
+  width: 90vw; 
+  height: clamp(35vh, 50vh, 60vh); 
+  max-height: 60dvh; 
+  background: transparent; 
   border-radius: 40px; 
   box-shadow: 0 15px 30px rgba(0,0,0,0.2); 
-  display: flex; align-items: center; justify-content: center; margin-bottom: 40px; 
+  display: flex; align-items: center; justify-content: center; 
+  margin: 10px 0; 
 }
-#flag-area img { max-width: 95%; max-height: 95%; object-fit: contain; border-radius: 30px; }
+#flag-area img, #review-flag-area img { 
+  max-width: 95%; max-height: 95%; object-fit: contain; border-radius: 30px; 
+}
 
-#choices { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; width: 90%; }
-.choice-btn { font-size: 36px; padding: 30px; background: #C8E6C9; color: white; border: none; border-radius: 40px; cursor: pointer; box-shadow: 0 8px #66BB6A; transition: 0.2s; }
+/* 選択肢（グリッド自動調整） */
+#choices, #review-choices { 
+  display: grid; 
+  grid-template-columns: 1fr 1fr; 
+  gap: clamp(15px, 4vw, 30px); 
+  width: 90%; 
+  margin-top: auto; 
+  margin-bottom: 20px;
+}
+.choice-btn { 
+  font-size: clamp(26px, 6vw, 38px); 
+  padding: clamp(20px, 5vw, 35px); 
+  background: #C8E6C9; color: white; border: none; 
+  border-radius: 40px; cursor: pointer; 
+  box-shadow: 0 8px #66BB6A; transition: 0.2s; 
+}
 .choice-btn:active { transform: translateY(4px); box-shadow: 0 4px #66BB6A; }
 .correct { background: #81C784 !important; animation: pulse 0.6s; }
-.highlight { border: 10px solid #FFEB3B; box-shadow: 0 0 40px #FFEB3B; }
+.highlight { border: 8px solid #FFEB3B; box-shadow: 0 0 40px #FFEB3B; }
 
-#feedback { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 300px; font-weight: bold; pointer-events: none; opacity: 0; transition: opacity 0.4s; }
-#feedback.show { opacity: 1; }
+/* ○×（本番・復習共通） */
+#feedback, #review-feedback { 
+  position: absolute; top: 50%; left: 50%; 
+  transform: translate(-50%, -50%); 
+  font-size: clamp(180px, 50vw, 350px); 
+  font-weight: bold; pointer-events: none; 
+  opacity: 0; transition: opacity 0.4s; z-index: 15; 
+}
+#feedback.show, #review-feedback.show { opacity: 1; }
 .mar { color: #F44336 !important; text-shadow: 0 0 30px #F44336; }
 .batsu { color: #1976D2; text-shadow: 0 0 30px #1976D2; }
 
+/* 紙吹雪 */
 #confetti { position: fixed; top: 0; left: 0; pointer-events: none; z-index: 10; }
 
-.popup { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 100; }
-.popup-content { background: white; padding: 40px; border-radius: 50px; text-align: center; max-width: 90%; box-shadow: 0 20px 40px rgba(0,0,0,0.3); }
-.popup-content h2 { font-size: 60px; color: #FF5252; }
-#reward-flag { 
-  max-width: 100%; 
-  max-height: 100%; 
-  height: auto; 
-  width: auto; 
-  object-fit: contain; 
-  margin: 20px 0; 
-  border-radius: 30px; 
-  box-shadow: 0 15px 30px rgba(0,0,0,0.2); 
+/* ごほうびポップアップ */
+.popup-content { 
+  background: white; padding: 30px; border-radius: 50px; 
+  text-align: center; max-width: 90%; box-shadow: 0 20px 40px rgba(0,0,0,0.3); 
 }
+.popup-content h2 { font-size: clamp(40px, 10vw, 60px); }
+#reward-flag { max-width: 90%; max-height: 50vh; object-fit: contain; margin: 20px 0; border-radius: 30px; }
 
-/* === 履歴・まちがい画面のリスト === */
+/* === がんばりきろく・まちがいきろく（大容量化！）=== */
 #history-list, #miss-list { 
-  width: 90%; 
-  max-height: 65vh; /* もどるボタンのスペース確保 */
+  width: 95%; 
+  max-height: 70dvh; 
   overflow-y: auto; 
-  background: rgba(255,255,255,0.9); 
+  background: rgba(255,255,255,0.95); 
   border-radius: 30px; 
-  padding: 20px; 
-  margin-bottom: 100px; /* もどるボタンとの間隔 */
+  padding: 15px; 
+  margin-bottom: 90px; 
 }
-.history-day, .miss-day { margin-bottom: 30px; }
-.history-date, .miss-date { font-size: 32px; color: #1565C0; margin-bottom: 15px; }
-.history-flags, .miss-flags { display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; }
-.history-flags img, .miss-flags img { width: 100px; height: auto; border-radius: 20px; cursor: pointer; box-shadow: 0 6px 12px rgba(0,0,0,0.2); }
+.history-day, .miss-day { margin-bottom: 20px; }
+.history-date, .miss-date { 
+  font-size: 24px; /* 小さく！ */
+  color: #1565C0; margin-bottom: 10px; 
+}
+.history-flags, .miss-flags { 
+  display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; 
+}
+.history-flags img, .miss-flags img { 
+  width: 60px; height: 40px; /* 小さく！ */
+  object-fit: cover; border-radius: 12px; 
+  cursor: pointer; box-shadow: 0 4px 8px rgba(0,0,0,0.2); 
+}
 
-/* === もどるボタン：小さく・下部固定 === */
+/* もどるボタン（小さく下部固定） */
 .back-btn { 
-  position: fixed; 
-  bottom: 30px; 
-  left: 50%; 
+  position: fixed; bottom: 20px; left: 50%; 
   transform: translateX(-50%); 
-  background: #FF9800; 
-  color: white; 
-  font-size: 36px; /* 小さく */
-  padding: 15px 40px; /* 小さく */
-  border-radius: 50px; 
-  cursor: pointer; 
-  box-shadow: 0 8px #F57C00; /* 小さく */
-  z-index: 20; /* リストの上 */
+  background: #FF9800; color: white; 
+  font-size: 32px; padding: 12px 35px; 
+  border-radius: 50px; cursor: pointer; 
+  box-shadow: 0 8px #F57C00; z-index: 20; 
 }
-.back-btn:active { 
-  transform: translateY(4px) translateX(-50%); 
-  box-shadow: 0 4px #F57C00; 
-}
-
-/* === 復習画面のレイアウト === */
-#review-screen { position: relative; } /* ○×の基準に */
-#review-flag-area { 
-  width: 85vw; height: 55vh; 
-  background: transparent !important; 
-  border-radius: 40px; 
-  box-shadow: 0 15px 30px rgba(0,0,0,0.2); 
-  display: flex; align-items: center; justify-content: center; margin-bottom: 40px; 
-}
-#review-flag-area img { max-width: 95%; max-height: 95%; object-fit: contain; border-radius: 30px; }
-
-#review-choices { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; width: 90%; }
-
-/* === 復習画面の○×（画面いっぱいサイズ）=== */
-#review-feedback { 
-  position: absolute; 
-  top: 50%; 
-  left: 50%; 
-  transform: translate(-50%, -50%); 
-  font-size: 300px; /* 画面いっぱい！ */
-  font-weight: bold; 
-  pointer-events: none; 
-  opacity: 0; 
-  transition: opacity 0.4s; 
-  z-index: 15; /* 国旗・ボタンの上 */
-}
-#review-feedback.show { opacity: 1; }
-#review-feedback.mar { color: #F44336 !important; text-shadow: 0 0 30px #F44336; }
-#review-feedback.batsu { color: #1976D2; text-shadow: 0 0 30px #1976D2; }
+.back-btn:active { transform: translateY(4px) translateX(-50%); box-shadow: 0 4px #F57C00; }
 
 @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.2); } 100% { transform: scale(1); } }
 
-@media (max-width: 600px) {
-  #choices { grid-template-columns: 1fr; }
-  .choice-btn { font-size: 32px; }
-  #flag-area { height: 45vh; }
-  #history-list, #miss-list { max-height: 60vh; }
-  .back-btn { font-size: 32px; padding: 12px 35px; bottom: 20px; }
-  #review-choices { grid-template-columns: 1fr; }
+/* 小さい画面対応 */
+@media (max-width: 600px) or (max-height: 700px) {
+  #choices, #review-choices { grid-template-columns: 1fr; }
+  .choice-btn { font-size: clamp(28px, 7vw, 36px); }
+  #flag-area, #review-flag-area { height: 40dvh; }
+  #history-list, #miss-list { max-height: 65dvh; }
+  .back-btn { font-size: 30px; padding: 10px 30px; bottom: 15px; }
 }
