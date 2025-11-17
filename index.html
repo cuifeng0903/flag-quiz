@@ -6,6 +6,7 @@
   <title>わくわく国旗クイズ！</title>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css" />
+  <!-- PWA -->
   <link rel="manifest" href="manifest.json">
   <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
   <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
@@ -13,38 +14,56 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
 </head>
 <body>
-
-  <!-- スタート画面 -->
-  <div id="start-screen" class="screen active">
-    <div class="start-button" id="start-btn">
-      <span>スタート！</span>
+  <div id="start-screen" class="screen">
+    <h1>わくわく<br>国旗クイズ！</h1>
+    <button id="start-btn" class="big-btn">スタート！</button>
+    <div class="menu">
+      <button id="history-btn" class="menu-btn">がんばりきろく</button>
+      <button id="miss-btn" class="menu-btn">まちがいきろく</button>
     </div>
   </div>
 
-  <!-- クイズ画面 -->
-  <div id="game-screen" class="screen">
-    <div class="progress-container">
-      <div class="progress-text" id="progress">1 / 10</div>
-      <div class="stars-container" id="stars"></div>
-    </div>
+  <div id="game-screen" class="screen hidden">
+    <div id="progress">1 / 20</div>
     <div id="flag-area"></div>
     <div id="choices"></div>
     <div id="feedback"></div>
     <canvas id="confetti"></canvas>
   </div>
 
-  <!-- 終了画面 -->
-  <div id="end-screen" class="screen">
-    <div class="end-message">
-      <h1>おわり！</h1>
-      <p id="result-text"></p>
-    </div>
-    <div class="end-buttons">
-      <button id="restart-btn" class="big-btn">もういちど<br>あそぶ？</button>
-      <button id="home-btn" class="big-btn home">おわる</button>
+  <div id="reward-popup" class="popup hidden">
+    <div class="popup-content">
+      <h2>すごい！</h2>
+      <img id="reward-flag" loading="eager" crossorigin="anonymous">
+      <p id="reward-name"></p>
+      <button id="reward-ok" class="big-btn">やったね！</button>
     </div>
   </div>
 
+  <div id="history-screen" class="screen hidden">
+    <h2>がんばりきろく</h2>
+    <div id="history-list"></div>
+    <button class="back-btn">もどる</button>
+  </div>
+
+  <div id="miss-screen" class="screen hidden">
+    <h2>まちがいきろく</h2>
+    <div id="miss-list"></div>
+    <button class="back-btn">もどる</button>
+  </div>
+
+  <div id="review-screen" class="screen hidden">
+    <div id="review-flag-area"></div>
+    <div id="review-choices"></div>
+    <div id="review-feedback"></div>
+    <button class="back-btn">もどる</button>
+  </div>
+
   <script src="script.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js');
+    }
+  </script>
 </body>
 </html>
