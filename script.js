@@ -196,40 +196,34 @@ const FLAGS = [
   { name: "ザンビア", code: "zm" },
   { name: "ジンバブエ", code: "zw" },
   { name: "コソボ", code: "xk" },
-  { name: "クックしょとう", code: "ck" },
-  { name: "ニウエ", code: "nu" }
+  { name: "クックしょとう", code: "ck" }
 ];
 
 // 画像URL生成
 const getFlagUrl = (code) => `https://flagcdn.com/w640/${code}.png`;
-const getSmallFlagUrl = (code) => `https://flagcdn.com/w80/${code}.png`;
 
 // fallback
 const FALLBACK_LARGE = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwMCIgaGVpZ2h0PSI2NjciIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjEwMDAiIGhlaWdodD0iNjY3IiBmaWxsPSIjY2NjIi8+PHRleHQgeD0iNTAwIiB5PSI0MDAiIGZvbnQtc2l6ZT0iNDAwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSJ3aGl0ZSI+PyI8L3RleHQ+PC9zdmc+';
-const FALLBACK_SMALL = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjUwIiBoZWlnaHQ9IjE2NyIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMjUwIiBoZWlnaHQ9IjE2NyIgZmlsbD0iI2NjYyIvPjx0ZXh0IHg9IjEyNSIgeT0iMTAwIiBmb250LXNpemU9IjEwMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0id2hpdGUiPj88L3RleHQ+PC9zdmc+';
 
 let quizFlags = [];
 let currentFlag = null;
 let questionCount = 0;
 let correctCount = 0;
 let missedFlags = [];
-let missRecords = JSON.parse(localStorage.getItem('flag_miss_records')) || {};
 const TOTAL_QUESTIONS = 20;
-const STORAGE_KEY = 'flag_quiz_records';
-const MISS_STORAGE_KEY = 'flag_miss_records';
 
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
 const playCorrectChime = () => {
-  [880, 1100, 1320].forEach((freq, i) => {
+  [1046, 1318, 1568].forEach((freq, i) => {
     const osc = audioCtx.createOscillator();
     const gain = audioCtx.createGain();
     osc.connect(gain); gain.connect(audioCtx.destination);
     osc.frequency.value = freq;
-    gain.gain.setValueAtTime(0.3, audioCtx.currentTime + i * 0.1);
-    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + i * 0.1 + 0.2);
-    osc.start(audioCtx.currentTime + i * 0.1);
-    osc.stop(audioCtx.currentTime + i * 0.1 + 0.2);
+    gain.gain.setValueAtTime(0.2, audioCtx.currentTime + i * 0.08);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + i * 0.08 + 0.2);
+    osc.start(audioCtx.currentTime + i * 0.08);
+    osc.stop(audioCtx.currentTime + i * 0.08 + 0.2);
   });
 };
 
@@ -237,100 +231,63 @@ const playWrongBeep = () => {
   const osc = audioCtx.createOscillator();
   const gain = audioCtx.createGain();
   osc.connect(gain); gain.connect(audioCtx.destination);
-  osc.frequency.value = 300;
-  gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
-  gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
-  osc.start(); osc.stop(audioCtx.currentTime + 0.3);
+  osc.frequency.value = 200;
+  gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+  osc.start(); osc.stop(audioCtx.currentTime + 0.4);
 };
 
-const speak = (text) => {
-  const utter = new SpeechSynthesisUtterance(text);
-  utter.lang = "ja-JP"; utter.rate = 0.9;
-  speechSynthesis.speak(utter);
-};
+// 星の初期化
+function initStars() {
+  const starsContainer = document.getElementById("stars");
+  starsContainer.innerHTML = "";
+  for (let i = 0; i < TOTAL_QUESTIONS; i++) {
+    const star = document.createElement("div");
+    star.className = "star";
+    star.id = `star-${i}`;
+    starsContainer.appendChild(star);
+  }
+}
 
-const canvas = document.getElementById("confetti");
-const ctx = canvas.getContext("2d");
-canvas.width = window.innerWidth; canvas.height = window.innerHeight;
-let particles = [];
+// 正解時に星を光らせる
+function fillStar() {
+  const star = document.getElementById(`star-${correctCount - 1}`);
+  if (star) {
+    star.classList.add("filled");
+  }
+}
 
-function createConfetti() {
-  particles = [];
-  const fountainX = canvas.width / 2;
-  for (let i = 0; i < 300; i++) {
-    const angle = (Math.random() - 0.5) * Math.PI / 2;
-    const speed = Math.random() * 4 + 6;
-    particles.push({
-      x: fountainX + (Math.random() - 0.5) * 100,
-      y: canvas.height + 50,
-      vx: Math.cos(angle) * speed * (Math.random() > 0.5 ? 1 : -1),
-      vy: -speed - Math.random() * 3,
-      color: ["#FFEB3B","#FF5252","#4CAF50","#2196F3","#FF9800"][Math.floor(Math.random()*5)],
-      size: Math.random() * 8 + 4,
-      gravity: 0.15,
-      drag: 0.99
+// 星パーティクル
+function createStarParticles(btn) {
+  for (let i = 0; i < 8; i++) {
+    const star = document.createElement("div");
+    star.textContent = "★";
+    star.style.position = "absolute";
+    star.style.left = "50%";
+    star.style.top = "50%";
+    star.style.fontSize = "6vmin";
+    star.style.color = "#FFD700";
+    star.style.pointerEvents = "none";
+    star.style.transform = "translate(-50%, -50%)";
+    star.style.zIndex = "20";
+    btn.appendChild(star);
+
+    const angle = Math.random() * Math.PI * 2;
+    const velocity = 6 + Math.random() * 8;
+    const anim = star.animate([
+      { transform: "translate(-50%, -50%) scale(0)", opacity: 1 },
+      { transform: `translate(${Math.cos(angle)*velocity}vmin, ${Math.sin(angle)*velocity}vmin) scale(1)`, opacity: 1 },
+      { transform: `translate(${Math.cos(angle)*velocity*2}vmin, ${Math.sin(angle)*velocity*2}vmin) scale(0)`, opacity: 0 }
+    ], {
+      duration: 800,
+      easing: "cubic-bezier(0.2, 0.8, 0.4, 1)"
     });
+    anim.onfinish = () => star.remove();
   }
 }
 
-function drawConfetti() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  particles.forEach(p => {
-    ctx.fillStyle = p.color;
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-    ctx.fill();
-    p.vx *= p.drag;
-    p.vy += p.gravity;
-    p.x += p.vx;
-    p.y += p.vy;
-  });
-  particles = particles.filter(p => p.y < canvas.height + 50 && Math.abs(p.vx) > 0.05);
-  if (particles.length > 0) requestAnimationFrame(drawConfetti);
-}
-
-let records = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
-
-// === JSTで今日の日付を取得（アプリ全体で使用）===
-function getTodayJST() {
-  const now = new Date();
-  const jstOffset = 9 * 60; // JSTはUTC+9
-  const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
-  const jst = new Date(utc + (jstOffset * 60000));
-  return jst.toISOString().split('T')[0];
-}
-
-// 30日前もJSTで（履歴表示用）
-function getCutoffJST() {
-  const now = new Date();
-  const jstOffset = 9 * 60;
-  const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
-  const jst = new Date(utc + (jstOffset * 60000));
-  jst.setDate(jst.getDate() - 30);
-  return jst.toISOString().split('T')[0];
-}
-
-// === 出題頻度平準化：今日正答した国旗は除外（JST）===
 function prepareQuiz() {
-  const today = getTodayJST();
-  const todayCorrect = records[today] || []; // 今日正答したコードリスト
-
-  let selected = [];
-  if (missedFlags.length > 0) {
-    const retry = missedFlags.splice(Math.floor(Math.random() * missedFlags.length), 1)[0];
-    selected.push(retry);
-  }
-  const remaining = TOTAL_QUESTIONS - selected.length;
-
-  // プール：今日正答していない国旗のみ（誤答は含む）
-  const pool = FLAGS.filter(f => 
-    !selected.some(s => s.code === f.code) && 
-    !todayCorrect.includes(f.code)
-  );
-
-  // ランダムに残りを選択（均等化）
-  const randoms = pool.sort(() => Math.random() - 0.5).slice(0, remaining);
-  quizFlags = [...selected, ...randoms];
+  quizFlags = FLAGS.sort(() => Math.random() - 0.5).slice(0, TOTAL_QUESTIONS);
   questionCount = 0;
   correctCount = 0;
 }
@@ -351,54 +308,29 @@ function newQuestion() {
     const btn = document.createElement("button");
     btn.className = "choice-btn";
     btn.textContent = c.name;
-    btn.onclick = () => selectAnswer(c === currentFlag, btn, choices);
+    btn.onclick = () => selectAnswer(c === currentFlag, btn);
     choicesDiv.appendChild(btn);
   });
 
   document.getElementById("feedback").classList.remove("show");
-  canvas.style.display = "none";
 }
 
-function selectAnswer(isCorrect, btn, choices) {
-  [...document.querySelectorAll(".choice-btn")].forEach(b => b.disabled = true);
-  const feedback = document.getElementById("feedback");
+function selectAnswer(isCorrect, btn) {
+  document.querySelectorAll(".choice-btn").forEach(b => b.disabled = true);
 
   if (isCorrect) {
     correctCount++;
     btn.classList.add("correct");
-    feedback.textContent = "○";
-    feedback.className = "show mar";
+    document.getElementById("feedback").textContent = "◎";
+    document.getElementById("feedback").className = "show mar";
     playCorrectChime();
-    canvas.style.display = "block";
-    createConfetti();
-    drawConfetti();
-
-    // 正答したら今日の記録に追加（JST）
-    const today = getTodayJST();
-    if (!records[today]) records[today] = [];
-    if (!records[today].includes(currentFlag.code)) {
-      records[today].push(currentFlag.code);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
-    }
+    fillStar();
+    createStarParticles(btn);
   } else {
-    if (!missedFlags.some(f => f.code === currentFlag.code)) {
-      missedFlags.push(currentFlag);
-    }
-    const today = getTodayJST(); // JST
-    if (!missRecords[today]) missRecords[today] = [];
-    if (!missRecords[today].includes(currentFlag.code)) {
-      missRecords[today].push(currentFlag.code);
-      localStorage.setItem(MISS_STORAGE_KEY, JSON.stringify(missRecords));
-    }
-
-    feedback.textContent = "×";
-    feedback.className = "show batsu";
+    btn.classList.add("wrong");
+    document.getElementById("feedback").textContent = "×";
+    document.getElementById("feedback").className = "show batsu";
     playWrongBeep();
-    choices.forEach((c, i) => {
-      if (c === currentFlag) {
-        document.querySelectorAll(".choice-btn")[i].classList.add("highlight");
-      }
-    });
   }
 
   questionCount++;
@@ -412,209 +344,31 @@ function selectAnswer(isCorrect, btn, choices) {
 }
 
 function endQuiz() {
-  const rate = correctCount / TOTAL_QUESTIONS;
-  document.getElementById("game-screen").classList.add("hidden");
-  
-  if (rate >= 0.9) {
-    showRewardPopup();
-  } else {
-    document.getElementById("start-screen").classList.remove("hidden");
-  }
+  document.getElementById("result-text").textContent = `せいかい ${correctCount}もん！`;
+  document.getElementById("game-screen").classList.remove("active");
+  document.getElementById("end-screen").classList.add("active");
 }
 
-function showRewardPopup() {
-  const today = getTodayJST(); // JST
-  const todayGained = records[today] || [];
-  const available = FLAGS.filter(f => !todayGained.includes(f.code));
-  
-  let reward;
-  if (available.length === 0) {
-    reward = FLAGS[Math.floor(Math.random() * FLAGS.length)];
-  } else {
-    reward = available[Math.floor(Math.random() * available.length)];
-  }
-  
-  const img = document.getElementById("reward-flag");
-  img.src = getFlagUrl(reward.code);
-  img.onerror = function() { this.src = FALLBACK_LARGE; };
-  document.getElementById("reward-name").textContent = reward.name;
-  document.getElementById("reward-popup").classList.remove("hidden");
-  speak(`やったね！${reward.name}を ゲット！`);
-  
-  if (!records[today]) records[today] = [];
-  if (!records[today].includes(reward.code)) {
-    records[today].push(reward.code);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
-  }
-}
-
-document.getElementById("reward-ok").onclick = () => {
-  document.getElementById("reward-popup").classList.add("hidden");
-  document.getElementById("start-screen").classList.remove("hidden");
-};
-
-// スタートボタン
+// スタート・再スタート・ホーム
 document.getElementById("start-btn").onclick = () => {
-  document.getElementById("start-screen").classList.add("hidden");
-  document.getElementById("game-screen").classList.remove("hidden");
+  document.getElementById("start-screen").classList.remove("active");
+  document.getElementById("game-screen").classList.add("active");
+  initStars();
   prepareQuiz();
   newQuestion();
 };
 
-// 履歴ボタン
-document.getElementById("history-btn").onclick = () => {
-  document.getElementById("start-screen").classList.add("hidden");
-  document.getElementById("history-screen").classList.remove("hidden");
-  showHistory();
+document.getElementById("restart-btn").onclick = () => {
+  document.getElementById("end-screen").classList.remove("active");
+  document.getElementById("game-screen").classList.add("active");
+  questionCount = 0;
+  correctCount = 0;
+  initStars();
+  prepareQuiz();
+  newQuestion();
 };
 
-document.getElementById("miss-btn").onclick = () => {
-  document.getElementById("start-screen").classList.add("hidden");
-  document.getElementById("miss-screen").classList.remove("hidden");
-  showMissHistory();
+document.getElementById("home-btn").onclick = () => {
+  document.getElementById("end-screen").classList.remove("active");
+  document.getElementById("start-screen").classList.add("active");
 };
-
-// 戻るボタン
-document.querySelectorAll(".back-btn").forEach(btn => {
-  btn.onclick = () => {
-    document.querySelectorAll(".screen").forEach(s => s.classList.add("hidden"));
-    document.getElementById("start-screen").classList.remove("hidden");
-  };
-});
-
-// === がんばりきろく表示（JST全体管理）===
-function showHistory() {
-  const list = document.getElementById("history-list");
-  list.innerHTML = "";
-  const dates = Object.keys(records).sort((a, b) => b.localeCompare(a));
-  const cutoffStr = getCutoffJST(); // JST 30日前
-  const recentDates = dates.filter(d => d >= cutoffStr);
-  if (recentDates.length === 0) {
-    list.innerHTML = "<p style='font-size:36px; color:#666;'>まだきろくが ありません。</p>";
-    return;
-  }
-  recentDates.forEach(date => {
-    const dayDiv = document.createElement("div");
-    dayDiv.className = "history-day";
-    const dateSpan = document.createElement("span");
-    dateSpan.className = "history-date";
-    dateSpan.textContent = date.replace(/-/g, '/'); // JST日付表示
-    dayDiv.appendChild(dateSpan);
-    const flagsDiv = document.createElement("div");
-    flagsDiv.className = "history-flags";
-    records[date].forEach(code => {
-      const img = document.createElement("img");
-      img.src = getSmallFlagUrl(code);
-      img.alt = FLAGS.find(f => f.code === code)?.name || "";
-      img.onerror = () => { img.src = FALLBACK_SMALL; };
-      flagsDiv.appendChild(img);
-    });
-    dayDiv.appendChild(flagsDiv);
-    list.appendChild(dayDiv);
-  });
-}
-
-// === まちがいきろく表示（JST全体管理）===
-function showMissHistory() {
-  const list = document.getElementById("miss-list");
-  list.innerHTML = "";
-  const dates = Object.keys(missRecords).sort((a, b) => b.localeCompare(a));
-  const cutoffStr = getCutoffJST(); // JST 30日前
-  const recentDates = dates.filter(d => d >= cutoffStr);
-  if (recentDates.length === 0) {
-    list.innerHTML = "<p style='font-size:36px; color:#666;'>まちがいが ありません！えらい！</p>";
-    return;
-  }
-  recentDates.forEach(date => {
-    const dayDiv = document.createElement("div");
-    dayDiv.className = "miss-day";
-    const dateSpan = document.createElement("span");
-    dateSpan.className = "miss-date";
-    dateSpan.textContent = date.replace(/-/g, '/'); // JST日付表示
-    dayDiv.appendChild(dateSpan);
-    const flagsDiv = document.createElement("div");
-    flagsDiv.className = "miss-flags";
-    missRecords[date].forEach(code => {
-      const f = FLAGS.find(x => x.code === code);
-      if (f) {
-        const img = document.createElement("img");
-        img.src = getSmallFlagUrl(code);
-        img.alt = f.name;
-        img.title = f.name;
-        img.onerror = () => { img.src = FALLBACK_SMALL; };
-        img.onclick = () => startReview(f);
-        flagsDiv.appendChild(img);
-      }
-    });
-    dayDiv.appendChild(flagsDiv);
-    list.appendChild(dayDiv);
-  });
-}
-
-let reviewFlag;
-function startReview(flag) {
-  reviewFlag = flag;
-  document.getElementById("miss-screen").classList.add("hidden");
-  document.getElementById("review-screen").classList.remove("hidden");
-  
-  const otherFlags = FLAGS.filter(f => f.code !== flag.code);
-  const wrongChoices = otherFlags.sort(() => Math.random() - 0.5).slice(0, 3);
-  const choices = [flag, ...wrongChoices].sort(() => Math.random() - 0.5);
-
-  document.getElementById("review-flag-area").innerHTML = `<img src="${getFlagUrl(flag.code)}" alt="" loading="eager" crossorigin="anonymous" onerror="this.src='${FALLBACK_LARGE}'">`;
-
-  const choicesDiv = document.getElementById("review-choices");
-  choicesDiv.innerHTML = "";
-  choices.forEach(c => {
-    const btn = document.createElement("button");
-    btn.className = "choice-btn";
-    btn.textContent = c.name;
-    btn.onclick = () => reviewAnswer(c === flag, btn, choices);
-    choicesDiv.appendChild(btn);
-  });
-
-  // ○×をリセット
-  const feedback = document.getElementById("review-feedback");
-  feedback.classList.remove("show", "mar", "batsu");
-  feedback.textContent = "";
-  canvas.style.display = "none"; // 紙吹雪は復習ではなし（シンプルに）
-}
-
-function reviewAnswer(isCorrect, btn, choices) {
-  [...document.querySelectorAll("#review-choices .choice-btn")].forEach(b => b.disabled = true);
-  const feedback = document.getElementById("review-feedback");
-
-  if (isCorrect) {
-    btn.classList.add("correct");
-    feedback.textContent = "○";
-    feedback.className = "show mar"; // 画面いっぱい○！
-    playCorrectChime();
-  } else {
-    feedback.textContent = "×";
-    feedback.className = "show batsu"; // 画面いっぱい×！
-    playWrongBeep();
-    choices.forEach((c, i) => {
-      if (c === reviewFlag) {
-        document.querySelectorAll("#review-choices .choice-btn")[i].classList.add("highlight");
-      }
-    });
-  }
-
-  setTimeout(() => {
-    document.getElementById("review-screen").classList.add("hidden");
-    document.getElementById("miss-screen").classList.remove("hidden");
-    // フィードバックリセット
-    feedback.classList.remove("show", "mar", "batsu");
-    feedback.textContent = "";
-  }, 2000);
-}
-
-document.getElementById("review-back-btn").onclick = () => {
-  document.getElementById("review-screen").classList.add("hidden");
-  document.getElementById("miss-screen").classList.remove("hidden");
-};
-
-window.addEventListener("resize", () => {
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
-});
