@@ -3,7 +3,7 @@
   "short_name": "国旗クイズ",
   "description": "幼児が楽しく国旗を学べるインタラクティブクイズアプリ",
   "lang": "ja",
-  "start_url": "/",
+  "start_url": "/flag-quiz/",
   "display": "standalone",
   "theme_color": "#B3E5FC",
   "background_color": "#E1F5FE",
